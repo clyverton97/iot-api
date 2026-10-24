@@ -49,7 +49,7 @@ app.post('/api/dados', exigirChave, async (req, res) => {
   const temperatura = num(b.temperatura, -40, 80);
   const umidade     = num(b.umidade, 0, 100);
   const atleta      = num(b.atleta, 1, 255);
-  const ponto       = num(b.ponto, 0, 50);
+  const ponto        = num(b.ponto, 0, 50);
   const bpm         = num(b.bpm, 0, 300);
   const rssi        = num(b.rssi, -150, 0);
   const tag         = b.tag == null ? null : String(b.tag).toUpperCase();
@@ -82,6 +82,26 @@ app.get('/api/dados', async (req, res) => {
     res.json(rows.map(r => ({ ...r, data_hora: r.data_hora instanceof Date ? r.data_hora.toISOString() : r.data_hora })));
   } catch (e) {
     console.error('SELECT falhou:', e.message);
+    res.status(500).json({ error: 'erro ao ler do banco' });
+  }
+});
+
+// Rota de estado atual para o front-end: GET /api/estado
+app.get('/api/estado', async (_req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, temperatura, umidade, atleta, ponto, tag, bpm, rssi, data_hora
+         FROM leituras ORDER BY id DESC LIMIT 30`
+    );
+    res.json({
+      status: 'ok',
+      dados: rows.map(r => ({
+        ...r,
+        data_hora: r.data_hora instanceof Date ? r.data_hora.toISOString() : r.data_hora
+      }))
+    });
+  } catch (e) {
+    console.error('SELECT /api/estado falhou:', e.message);
     res.status(500).json({ error: 'erro ao ler do banco' });
   }
 });
