@@ -86,8 +86,8 @@ app.get('/api/dados', async (req, res) => {
   }
 });
 
-// Rota de estado atual para o front-end: GET /api/estado
-app.get('/api/estado', async (_req, res) => {
+// Suporta tanto /estado como /api/estado para evitar qualquer 404
+app.get(['/estado', '/api/estado'], async (_req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT id, temperatura, umidade, atleta, ponto, tag, bpm, rssi, data_hora
@@ -101,7 +101,7 @@ app.get('/api/estado', async (_req, res) => {
       }))
     });
   } catch (e) {
-    console.error('SELECT /api/estado falhou:', e.message);
+    console.error('SELECT /estado falhou:', e.message);
     res.status(500).json({ error: 'erro ao ler do banco' });
   }
 });
