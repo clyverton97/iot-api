@@ -52,4 +52,20 @@ app.get(['/estado', '/api/estado'], async (_req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
+// Aceita tanto /estado quanto /api/estado para evitar qualquer 404
+app.get(['/estado', '/api/estado'], async (_req, res) => {
+  try {
+    const [rows] = await pool.query(
+      `SELECT id, temperatura, umidade, atleta, ponto, tag, bpm, rssi, data_hora
+         FROM leituras ORDER BY id DESC LIMIT 1`
+    );
+    res.status(200).json({
+      status: 'sucesso',
+      dado: rows[0] || { temperatura: 0, umidade: 0 }
+    });
+  } catch (e) {
+    console.error('Erro no /estado:', e.message);
+    res.status(500).json({ error: 'erro ao ler do banco' });
+  }
+});
 app.listen(PORT, () => console.log(`API rodando na porta ${PORT}`));
